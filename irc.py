@@ -1,5 +1,9 @@
 from traceback import format_exc
+import logging
 import socket
+
+log = logging.getLogger('irc')
+
 
 class IRC(object):
     def __init__(self, server, nick):
@@ -15,7 +19,7 @@ class IRC(object):
         self.send('NICK %s' % self.nick)
 
     def send(self, msg):
-        print '>>>', msg
+        log.debug('>>> %s' % msg)
         self.sock.sendall(msg + '\r\n')
 
     def readlines(self):
@@ -25,7 +29,7 @@ class IRC(object):
             while buf.find('\n') != -1:
                 line, buf = buf.split('\n', 1)
                 line = line.rstrip('\r')
-                print '<<<', line
+                log.debug('<<< %s' % line)
                 yield line
 
 
@@ -41,4 +45,4 @@ class IRC(object):
                 try:
                     func(prefix, line)
                 except Exception, e:
-                    print format_exc()
+                    log.exception('Error handling IRC event')

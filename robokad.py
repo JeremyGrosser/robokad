@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from traceback import format_exc
+import logging
 import random
 import os.path
 import os
@@ -8,8 +9,12 @@ import sys
 
 import irc
 
-#sys.stdout = file('/home/synack/src/robokad/stdout.log', 'a')
-#sys.stderr = sys.stdout
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+handler = logging.FileHandler('/home/synack/src/robokad/stdout.log')
+root.addHandler(handler)
+
+log = logging.getLogger('robokad')
 
 # >>> JOIN #synacktest
 # <<< :robokad MODE robokad :+i
@@ -25,9 +30,12 @@ class RoboKad(irc.IRC):
         self.config = {}
 
     def load_config(self, filename='config.json'):
-        self.config = json.load(file(filename, 'r'))
+        try:
+            self.config = json.load(file(filename, 'r'))
+        except:
+            log.exception('Error loading %s' % filename)
     
-    def conf(key, default=None):
+    def conf(self, key, default=None):
         value = self.config
         for k in key.split('.'):
             try:
@@ -54,9 +62,14 @@ class RoboKad(irc.IRC):
             else:
                 actiontype = 'any'
 
-            command, args = msg.split(' ', 1)
+            command = msg.split(' ', 1)
+            if len(command) > 1:
+                command, args = command
+            else:
+                command = command[0]
+                args = []
             command = command.lstrip('!').lower()
-            print '%s_%s(%r, %r, %r)' % (actiontype, command, chan, nick, args)
+            logging.debug('%s_%s(%r, %r, %r)' % (actiontype, command, chan, nick, args))
 
             func = getattr(self, '%s_%s' % (actiontype, command), None)
             if not func and actiontype == 'cmd':
@@ -67,7 +80,7 @@ class RoboKad(irc.IRC):
                 try:
                     func(nick, chan, args)
                 except Exception, e:
-                    print format_exc()
+                    log.exception('Error handling command: %s_%s %r' % (actiontype, command, func))
 
     def cmd_join(self, nick, chan, args):
         args = args.split(' ', 1)
@@ -88,7 +101,7 @@ class RoboKad(irc.IRC):
 
     def cmd_reload(self, nick, chan, args):
         self.load_config()
-        self.send('PRIVMSG %s :Reloaded config' % chan)
+        self.send('PRIVMSG %s :Reloaded config' % nick)
 
     def cmd_quit(self, nick, chan, args):
         self.send('QUIT :%s' % args)
