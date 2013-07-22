@@ -25,7 +25,10 @@ class IRC(object):
     def readlines(self):
         buf = ''
         while True:
-            buf += self.sock.recv(1024)
+            chunk = self.sock.recv(1024)
+            if not chunk:
+                break
+            buf += chunk
             while buf.find('\n') != -1:
                 line, buf = buf.split('\n', 1)
                 line = line.rstrip('\r')
@@ -46,3 +49,4 @@ class IRC(object):
                     func(prefix, line)
                 except Exception, e:
                     log.exception('Error handling IRC event')
+        log.critical('Connection lost')
