@@ -88,6 +88,7 @@ class RoboKad(irc.IRC):
             channel, key = args
             self.send('JOIN %s %s' % (channel, key))
         else:
+            channel = args[0]
             self.send('JOIN %s' % channel)
 
     def cmd_part(self, nick, chan, args):
