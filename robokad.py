@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from traceback import format_exc
+import urbandictionary
 import logging
 import random
 import os.path
@@ -130,6 +131,18 @@ class RoboKad(irc.IRC):
         if chan == self.nick:
             chan = nick
         self.send('PRIVMSG %s :Quote added' % chan)
+
+    def any_define(self, nick, chan, args):
+        if not self.config.get('define_enabled', True):
+            self.send('PRIVMSG %s :no.' % chan)
+            return
+        term = args
+        definition = list(urbandictionary.define(term))
+        if not definition:
+            self.send('PRIVMSG %s :%s is undefined' % (chan, term))
+        else:
+            d = random.choice(definition)
+            self.send('PRIVMSG %s :%s' % (chan, d.encode('utf-8', 'ignore')))
 
 
 bot = RoboKad(('irc.freenode.net', 6667), 'robokad')

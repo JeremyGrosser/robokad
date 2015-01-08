@@ -20,7 +20,7 @@ class IRC(object):
 
     def send(self, msg):
         log.debug('>>> %s' % msg)
-        self.sock.sendall(msg + '\r\n')
+        self.sock.sendall(msg + u'\r\n')
 
     def readlines(self):
         buf = ''
