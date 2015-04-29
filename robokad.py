@@ -8,6 +8,7 @@ import os
 import json
 import sys
 
+import markov
 import irc
 
 root = logging.getLogger()
@@ -29,6 +30,21 @@ class RoboKad(irc.IRC):
     def __init__(self, *args, **kwargs):
         irc.IRC.__init__(self, *args, **kwargs)
         self.config = {}
+        self.markov = markov.MarkovChain()
+        self.preload_markov()
+
+    def preload_markov(self):
+        count = 0
+        for filename in os.listdir('quotes'):
+            filename = 'quotes/%s' % filename
+            with open(filename, 'r') as fd:
+                for line in fd:
+                    line = line.rstrip('\r\n\t ')
+                    if line.startswith('<'):
+                        line = line.split('>', 1)[-1]
+                    self.markov.learn(line)
+                    count += 1
+        log.info('Markov learned %i quotes', count)
 
     def load_config(self, filename='config.json'):
         try:
@@ -48,7 +64,7 @@ class RoboKad(irc.IRC):
 
     def irc_376(self, prefix, line):
         for channel in self.conf('autojoin', []):
-            if channel['key']:
+            if channel.get('key', None):
                 self.send('JOIN %(channel)s %(key)s' % channel)
             else:
                 self.send('JOIN %(channel)s' % channel)
@@ -82,6 +98,9 @@ class RoboKad(irc.IRC):
                     func(nick, chan, args)
                 except Exception, e:
                     log.exception('Error handling command: %s_%s %r' % (actiontype, command, func))
+
+        if msg.startswith(self.nick):
+            self.send('PRIVMSG %s :%s' % (chan, iter(self.markov).next()))
 
     def cmd_join(self, nick, chan, args):
         args = args.split(' ', 1)
@@ -130,6 +149,8 @@ class RoboKad(irc.IRC):
         fd.close()
         if chan == self.nick:
             chan = nick
+
+        self.markov.learn(args)
         self.send('PRIVMSG %s :Quote added' % chan)
 
     def any_define(self, nick, chan, args):
