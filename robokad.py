@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/synack/src/robokad/env/bin/python2.7
 from traceback import format_exc
 import urbandictionary
 import logging
@@ -11,6 +11,7 @@ import sys
 import markov
 import irc
 
+os.chdir('/home/synack/src/robokad')
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 handler = logging.FileHandler('/home/synack/src/robokad/stdout.log')
