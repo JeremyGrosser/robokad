@@ -167,7 +167,7 @@ class RoboKad(irc.IRC):
             self.send('PRIVMSG %s :%s' % (chan, d.encode('utf-8', 'ignore')))
 
 
-bot = RoboKad(('irc.freenode.net', 6667), 'robokad')
+bot = RoboKad(('irc.freenode.net', 7000), 'robokad')
 bot.load_config()
-bot.connect()
+bot.connect_ssl()
 bot.run()

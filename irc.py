@@ -1,6 +1,7 @@
 from traceback import format_exc
 import logging
 import socket
+import ssl
 
 log = logging.getLogger('irc')
 
@@ -13,6 +14,13 @@ class IRC(object):
 
     def connect(self):
         self.sock = socket.socket()
+        self.sock.connect(self.server)
+        self.send('USER %s %s %s :%s' % (self.nick,
+            socket.gethostname(), socket.gethostname(), self.nick))
+        self.send('NICK %s' % self.nick)
+
+    def connect_ssl(self):
+        self.sock = ssl.wrap_socket(socket.socket(), ssl_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_REQUIRED, ca_certs='/etc/ssl/certificates/ca-certificates.crt')
         self.sock.connect(self.server)
         self.send('USER %s %s %s :%s' % (self.nick,
             socket.gethostname(), socket.gethostname(), self.nick))
