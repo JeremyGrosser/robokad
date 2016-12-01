@@ -107,6 +107,12 @@ class RoboKad(irc.IRC):
         if msg.startswith(self.nick):
             self.send('PRIVMSG %s :%s' % (chan, iter(self.markov).next()))
 
+    def _replyto(self, nick, chan):
+        if chan == self.nick:
+            return nick
+        else:
+            return chan
+
     def cmd_join(self, nick, chan, args):
         args = args.split(' ', 1)
         if len(args) > 1:
@@ -127,7 +133,8 @@ class RoboKad(irc.IRC):
 
     def cmd_reload(self, nick, chan, args):
         self.load_config()
-        self.send('PRIVMSG %s :Reloaded config' % nick)
+        replyto = self._replyto(nick, chan)
+        self.send('PRIVMSG %s :Reloaded config' % replyto)
 
     def cmd_quit(self, nick, chan, args):
         self.send('QUIT :%s' % args)
@@ -141,12 +148,15 @@ class RoboKad(irc.IRC):
             return
         quotes = file('quotes/%s' % args[0], 'r').readlines()
         quote = random.choice(quotes)
-        self.send('PRIVMSG %s :%s' % (chan, quote))
+
+        replyto = self._replyto(nick, chan)
+        self.send('PRIVMSG %s :%s' % (replyto, quote))
 
     def any_addquote(self, nick, chan, args):
+        replyto = self._replyto(nick, chan)
         name, args = args.split(' ', 1)
         if '/' in name or '.' in name:
-            self.send('PRIVMSG %s :No' % chan)
+            self.send('PRIVMSG %s :No' % replyto)
             return
         fd = file('quotes/%s' % name, 'a')
         fd.write(args + '\n')
@@ -156,23 +166,26 @@ class RoboKad(irc.IRC):
             chan = nick
 
         self.markov.learn(args)
-        self.send('PRIVMSG %s :Quote added' % chan)
+        self.send('PRIVMSG %s :Quote added' % replyto)
 
     def any_define(self, nick, chan, args):
+        replyto = self._replyto(nick, chan)
+
         if not self.config.get('define_enabled', True):
-            self.send('PRIVMSG %s :no.' % chan)
+            self.send('PRIVMSG %s :no.' % replyto)
             return
         term = args
         definition = list(urbandictionary.define(term))
         if not definition:
-            self.send('PRIVMSG %s :%s is undefined' % (chan, term))
+            self.send('PRIVMSG %s :%s is undefined' % (replyto, term))
         else:
             d = random.choice(definition)
-            self.send('PRIVMSG %s :%s' % (chan, d.encode('utf-8', 'ignore')))
+            self.send('PRIVMSG %s :%s' % (replyto, d.encode('utf-8', 'ignore')))
 
     def any_codename(self, nick, chan, args):
         codename = ' '.join([random.choice(x) for x in self.codenames]).upper()
-        self.send('PRIVMSG %s :%s' % (chan, codename))
+        replyto = self._replyto(nick, chan)
+        self.send('PRIVMSG %s :%s' % (replyto, codename))
 
 
 bot = RoboKad(('irc.freenode.net', 7000), 'robokad')
