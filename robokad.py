@@ -33,6 +33,10 @@ class RoboKad(irc.IRC):
         self.config = {}
         self.markov = markov.MarkovChain()
         self.preload_markov()
+        self.codenames = [
+                open('codenames/firstnames.txt', 'r').read().split('\n')[:-1],
+                open('codenames/lastnames.txt', 'r').read().split('\n')[:-1],
+        ]
 
     def preload_markov(self):
         count = 0
@@ -165,6 +169,10 @@ class RoboKad(irc.IRC):
         else:
             d = random.choice(definition)
             self.send('PRIVMSG %s :%s' % (chan, d.encode('utf-8', 'ignore')))
+
+    def any_codename(self, nick, chan, args):
+        codename = ' '.join([random.choice(x) for x in self.codenames]).upper()
+        self.send('PRIVMSG %s :%s' % (chan, codename))
 
 
 bot = RoboKad(('irc.freenode.net', 7000), 'robokad')
