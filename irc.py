@@ -20,7 +20,7 @@ class IRC(object):
         self.send('NICK %s' % self.nick)
 
     def connect_ssl(self):
-        self.sock = ssl.wrap_socket(socket.socket(), ssl_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_REQUIRED, ca_certs='/etc/ssl/cert.pem')
+        self.sock = ssl.wrap_socket(socket.socket(), ssl_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_REQUIRED, ca_certs='/etc/ssl/certs/ca-certificates.crt')
         self.sock.connect(self.server)
         self.send('USER %s %s %s :%s' % (self.nick,
             socket.gethostname(), socket.gethostname(), self.nick))
