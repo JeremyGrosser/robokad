@@ -27,15 +27,15 @@ class MarkovChain(object):
             return self.generate(current)
         else:
             return ' '.join(current)
-
-    def __iter__(self):
+    
+    def next(self):
         while True:
             try:
-                startword = random.choice(self.d.keys())
+                startword = random.choice(list(self.d.keys()))
                 startword = startword.split(' ')
-                yield self.generate(startword)
+                return self.generate(startword)
             except Exception as e:
-                print str(e)
+                print(str(e))
                 continue
 
 

@@ -1,4 +1,4 @@
-#!/home/synack/src/robokad/env/bin/python2.7
+#!/usr/bin/env python3
 from traceback import format_exc
 import urbandictionary
 import logging
@@ -53,7 +53,7 @@ class RoboKad(irc.IRC):
 
     def load_config(self, filename='config.json'):
         try:
-            self.config = json.load(file(filename, 'r'))
+            self.config = json.load(open(filename, 'r'))
         except:
             log.exception('Error loading %s' % filename)
     
@@ -101,11 +101,11 @@ class RoboKad(irc.IRC):
             if func:
                 try:
                     func(nick, chan, args)
-                except Exception, e:
+                except Exception as e:
                     log.exception('Error handling command: %s_%s %r' % (actiontype, command, func))
 
         if msg.startswith(self.nick):
-            self.send('PRIVMSG %s :%s' % (chan, iter(self.markov).next()))
+            self.send('PRIVMSG %s :%s' % (chan, self.markov.next()))
 
     def _replyto(self, nick, chan):
         if chan == self.nick:
@@ -146,7 +146,7 @@ class RoboKad(irc.IRC):
         
         if not os.path.exists('quotes/%s' % args[0]):
             return
-        quotes = file('quotes/%s' % args[0], 'r').readlines()
+        quotes = open('quotes/%s' % args[0], 'r').readlines()
         quote = random.choice(quotes)
 
         replyto = self._replyto(nick, chan)
@@ -158,7 +158,7 @@ class RoboKad(irc.IRC):
         if '/' in name or '.' in name:
             self.send('PRIVMSG %s :No' % replyto)
             return
-        fd = file('quotes/%s' % name, 'a')
+        fd = open('quotes/%s' % name, 'a')
         fd.write(args + '\n')
         fd.flush()
         fd.close()
@@ -180,7 +180,7 @@ class RoboKad(irc.IRC):
             self.send('PRIVMSG %s :%s is undefined' % (replyto, term))
         else:
             d = random.choice(definition)
-            self.send('PRIVMSG %s :%s' % (replyto, d.encode('utf-8', 'ignore')))
+            self.send('PRIVMSG %s :%s' % (replyto, d))
 
     def any_codename(self, nick, chan, args):
         codename = ' '.join([random.choice(x) for x in self.codenames]).upper()
@@ -188,7 +188,7 @@ class RoboKad(irc.IRC):
         self.send('PRIVMSG %s :%s' % (replyto, codename))
 
 
-bot = RoboKad(('irc.freenode.net', 7000), 'robokad')
+bot = RoboKad(('irc.libera.chat', 6697), 'robokad')
 bot.load_config()
 bot.connect_ssl()
 bot.run()

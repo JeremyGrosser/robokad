@@ -28,18 +28,19 @@ class IRC(object):
 
     def send(self, msg):
         log.debug('>>> %s' % msg)
-        self.sock.sendall(msg + u'\r\n')
+        self.sock.sendall(msg.encode('utf8') + b'\r\n')
 
     def readlines(self):
-        buf = ''
+        buf = b''
         while True:
             chunk = self.sock.recv(1024)
             if not chunk:
                 break
             buf += chunk
-            while buf.find('\n') != -1:
-                line, buf = buf.split('\n', 1)
-                line = line.rstrip('\r')
+            while buf.find(b'\n') != -1:
+                line, buf = buf.split(b'\n', 1)
+                line = line.rstrip(b'\r')
+                line = line.decode('utf8')
                 log.debug('<<< %s' % line)
                 yield line
 
@@ -55,6 +56,6 @@ class IRC(object):
             if func:
                 try:
                     func(prefix, line)
-                except Exception, e:
+                except Exception as e:
                     log.exception('Error handling IRC event')
         log.critical('Connection lost')
